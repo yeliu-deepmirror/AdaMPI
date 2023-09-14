@@ -1,6 +1,6 @@
 name: mpi
 channels:
-  - nvidia
+  - pytorch
   - anaconda
   - conda-forge
   - defaults
@@ -8,17 +8,16 @@ dependencies:
   - cudatoolkit=11.6
   - matplotlib
   - pytorch=1.12.1
-  - torchaudio=0.12.1
   - torchvision=0.13.1
+  - tqdm
   - pip
   - pip:
-    - numpy==1.19
-    - scikit-image==0.19.1
-    - scipy==1.8.0
-    - pillow==9.0.1
-    - opencv-python==4.4.0.40
-    - tqdm==4.64.0
-    - moviepy==1.0.3
+    - cython
+    - scikit-image
+    - scipy
+    - pillow
+    - opencv-python
+    - moviepy
     - pyyaml
     - scikit-learn
     - lpips

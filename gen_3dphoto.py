@@ -15,12 +15,12 @@ from model.AdaMPI import MPIPredictor
 
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--img_path', type=str, default="images/0810.png")
+parser.add_argument('--img_path', type=str, default="images/music.png")
 parser.add_argument('--disp_path', type=str, default=None)
 parser.add_argument('--width', type=int, default=384)
 parser.add_argument('--height', type=int, default=256)
-parser.add_argument('--save_path', type=str, default="debug/0810.mp4")
-parser.add_argument('--ckpt_path', type=str, default="weight/adampi_64p.pth")
+parser.add_argument('--save_path', type=str, default="debug/music.mp4")
+parser.add_argument('--ckpt_path', type=str, default="weight/adampi_32p.pth")
 opt, _ = parser.parse_known_args()
 
 
@@ -33,7 +33,8 @@ else:
     model = DPTForDepthEstimation.from_pretrained("Intel/dpt-hybrid-midas").cuda()
     image_processor = DPTImageProcessor.from_pretrained("Intel/dpt-hybrid-midas")
     with torch.no_grad():
-        inputs = image_processor(images=Image.open(opt.img_path), return_tensors="pt")
+        image_tmp = Image.open(opt.img_path).convert("RGB")
+        inputs = image_processor(image_tmp, return_tensors="pt")
         midas_depth = model(pixel_values=inputs['pixel_values'].cuda()).predicted_depth.unsqueeze(1)
 
         # Dump depth map for debugging
@@ -46,6 +47,9 @@ else:
 
 image = F.interpolate(image, size=(opt.height, opt.width), mode='bilinear', align_corners=True)
 disp = F.interpolate(disp, size=(opt.height, opt.width), mode='bilinear', align_corners=True)
+
+print(image.shape)
+print(disp.shape)
 
 # load pretrained model
 ckpt = torch.load(opt.ckpt_path)

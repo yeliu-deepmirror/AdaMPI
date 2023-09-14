@@ -15,7 +15,7 @@ from utils.mpi.homography_sampler import HomographySample
 
 
 def image_to_tensor(img_path, unsqueeze=True):
-    rgb = transforms.ToTensor()(Image.open(img_path))
+    rgb = transforms.ToTensor()(Image.open(img_path).convert("RGB"))
     if unsqueeze:
         rgb = rgb.unsqueeze(0)
     return rgb
