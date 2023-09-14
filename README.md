@@ -19,6 +19,19 @@ Yuxuan Han, Ruicheng Wang and Jiaolong Yang
 
 **Abstract**: *This paper deals with the challenging task of synthesizing novel views for in-the-wild photographs. Existing methods have shown promising results leveraging monocular depth estimation and color inpainting with layered depth representations. However, these methods still have limited capability to handle scenes with complex 3D geometry. We propose a new method based on the multiplane image (MPI) representation. To accommodate diverse scene layouts in the wild and tackle the difficulty in producing high-dimensional MPI contents, we design a network structure that consists of two novel modules, one for plane depth adjustment and another for depth-aware color prediction. The former adjusts the initial plane positions using the RGBD context feature and an attention mechanism. Given adjusted depth values, the latter predicts the color and density for each plane separately with proper inter-plane interactions achieved via a feature masking strategy. To train our method, we construct large-scale stereo training data using only unconstrained single-view image collections by a simple yet effective warp-back strategy.*
 
+## Environment
+
+run with docker:
+```shell
+IMG=mpi dev
+```
+
+create conda env
+```shell
+conda env create -f environment.yml
+conda activate mpi
+```
+
 ## Document
 This repo contain two parts:
 * The train and inference code for the *AdaMPI*. You can use it to generate 3D photo from single-view in-the-wild image input, as shown in the [teaser gif](misc/teaser.gif). See [AdaMPI.md](doc/AdaMPI.md) for more details.
@@ -41,4 +54,4 @@ Please cite the following paper if this model helps your research:
 
 ## Acknowledgments
 * The code for inference and training is heavily borrowed from [MINE](https://github.com/vincentfung13/MINE), we thank the author for their great effort.
-* We thank [Varun Jampani](https://varunjampani.github.io/) and [Meng-Li Shih](https://shihmengli.github.io/) for helpful suggestions and discussions to evaluate their method. 
+* We thank [Varun Jampani](https://varunjampani.github.io/) and [Meng-Li Shih](https://shihmengli.github.io/) for helpful suggestions and discussions to evaluate their method.

@@ -20,7 +20,7 @@ parser.add_argument('--disp_path', type=str, default=None)
 parser.add_argument('--width', type=int, default=384)
 parser.add_argument('--height', type=int, default=256)
 parser.add_argument('--save_path', type=str, default="debug/0810.mp4")
-parser.add_argument('--ckpt_path', type=str, default="adampiweight/adampi_64p.pth")
+parser.add_argument('--ckpt_path', type=str, default="weight/adampi_64p.pth")
 opt, _ = parser.parse_known_args()
 
 
@@ -35,7 +35,7 @@ else:
     with torch.no_grad():
         inputs = image_processor(images=Image.open(opt.img_path), return_tensors="pt")
         midas_depth = model(pixel_values=inputs['pixel_values'].cuda()).predicted_depth.unsqueeze(1)
-        
+
         # Dump depth map for debugging
         midas_depth_np = output = F.interpolate(midas_depth, size=(opt.height, opt.width), mode="bilinear", align_corners=True).squeeze().cpu().numpy()
         formatted = (midas_depth_np * 255 / np.max(midas_depth_np)).astype("uint8")
