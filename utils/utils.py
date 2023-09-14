@@ -46,6 +46,7 @@ def render_3dphoto(
     k_src,  # [b,3,3]
     k_tgt,  # [b,3,3]
     save_path,
+    cuda=True,
 ):
     h, w = mpi_all_src.shape[-2:]
     device = mpi_all_src.device
@@ -73,11 +74,13 @@ def render_3dphoto(
     swing_path_list = gen_swing_path()
     frames = []
     for cam_ext in tqdm(swing_path_list):
+        if cuda:
+            cam_ext = cam_ext.cuda()
         frame = render_novel_view(
             mpi_all_rgb_src,
             mpi_all_sigma_src,
             disparity_all_src,
-            cam_ext.cuda(),
+            cam_ext,
             k_src_inv,
             k_tgt,
             homography_sampler,

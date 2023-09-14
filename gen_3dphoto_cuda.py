@@ -17,8 +17,8 @@ from model.AdaMPI import MPIPredictor
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--img_path', type=str, default="images/music.png")
 parser.add_argument('--disp_path', type=str, default=None)
-parser.add_argument('--width', type=int, default=384)
-parser.add_argument('--height', type=int, default=256)
+parser.add_argument('--width', type=int, default=1024)
+parser.add_argument('--height', type=int, default=640)
 parser.add_argument('--save_path', type=str, default="debug/music.mp4")
 parser.add_argument('--ckpt_path', type=str, default="weight/adampi_32p.pth")
 opt, _ = parser.parse_known_args()
@@ -59,14 +59,12 @@ model = MPIPredictor(
     num_planes=ckpt["num_planes"],
 )
 model.load_state_dict(ckpt["weight"])
-# model = model.cuda()
+model = model.cuda()
 model = model.eval()
 
 # predict MPI planes
 print("predict MPI planes...")
 with torch.no_grad():
-    image = image.cpu()
-    disp = disp.cpu()
     pred_mpi_planes, pred_mpi_disp = model(image, disp)  # [b,s,4,h,w]
 
 # render 3D photo
@@ -74,15 +72,12 @@ K = torch.tensor([
     [0.58, 0, 0.5],
     [0, 0.58, 0.5],
     [0, 0, 1]
-])
+]).cuda()
 K[0, :] *= opt.width
 K[1, :] *= opt.height
 K = K.unsqueeze(0)
 
 print("render video...")
-# image = image.cuda()
-# pred_mpi_planes = pred_mpi_planes.cuda()
-# pred_mpi_disp = pred_mpi_disp.cuda()
 render_3dphoto(
     image,
     pred_mpi_planes,
@@ -90,5 +85,4 @@ render_3dphoto(
     K,
     K,
     opt.save_path,
-    False,
 )
