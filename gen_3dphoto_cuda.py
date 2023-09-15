@@ -10,6 +10,7 @@ from utils.utils import (
     image_to_tensor,
     disparity_to_tensor,
     render_3dphoto,
+    write_mpi_to_binary,
 )
 from model.AdaMPI import MPIPredictor
 
@@ -66,6 +67,7 @@ model = model.eval()
 print("predict MPI planes...")
 with torch.no_grad():
     pred_mpi_planes, pred_mpi_disp = model(image, disp)  # [b,s,4,h,w]
+    write_mpi_to_binary(image, pred_mpi_planes, pred_mpi_disp, opt.save_path + ".bin")
 
 # render 3D photo
 K = torch.tensor([

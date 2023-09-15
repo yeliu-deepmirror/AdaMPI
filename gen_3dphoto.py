@@ -15,11 +15,11 @@ from model.AdaMPI import MPIPredictor
 
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--img_path', type=str, default="images/music.png")
+parser.add_argument('--img_path', type=str, default="images/0910.png")
 parser.add_argument('--disp_path', type=str, default=None)
-parser.add_argument('--width', type=int, default=1024)
-parser.add_argument('--height', type=int, default=640)
-parser.add_argument('--save_path', type=str, default="debug/music.mp4")
+parser.add_argument('--width', type=int, default=384)
+parser.add_argument('--height', type=int, default=256)
+parser.add_argument('--save_path', type=str, default="debug/0910.mp4")
 parser.add_argument('--ckpt_path', type=str, default="weight/adampi_32p.pth")
 opt, _ = parser.parse_known_args()
 
@@ -68,6 +68,9 @@ with torch.no_grad():
     image = image.cpu()
     disp = disp.cpu()
     pred_mpi_planes, pred_mpi_disp = model(image, disp)  # [b,s,4,h,w]
+
+print("pred_mpi_planes", pred_mpi_planes.shape)
+print("pred_mpi_disp", pred_mpi_disp.shape)
 
 # render 3D photo
 K = torch.tensor([

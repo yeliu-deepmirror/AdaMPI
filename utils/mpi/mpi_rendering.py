@@ -21,6 +21,23 @@ def render(rgb_BS3HW, sigma_BS1HW, xyz_BS3HW, use_alpha=False, is_bg_depth_inf=F
     return imgs_syn, depth_syn, blend_weights, weights
 
 
+def compute_alpha(sigma_BS1HW, xyz_BS3HW):
+    B, S, _, H, W = sigma_BS1HW.size()
+
+    xyz_diff_BS3HW = xyz_BS3HW[:, 1:, :, :, :] - xyz_BS3HW[:, 0:-1, :, :, :]  # Bx(S-1)x3xHxW
+    xyz_dist_BS1HW = torch.norm(xyz_diff_BS3HW, dim=2, keepdim=True)  # Bx(S-1)x1xHxW
+
+    xyz_dist_BS1HW = torch.cat((xyz_dist_BS1HW,
+                                torch.full((B, 1, 1, H, W),
+                                           fill_value=1e3,
+                                           dtype=xyz_BS3HW.dtype,
+                                           device=xyz_BS3HW.device)),
+                               dim=1)  # BxSx3xHxW
+    transparency = torch.exp(-sigma_BS1HW * xyz_dist_BS1HW)  # BxSx1xHxW
+    alpha = 1 - transparency # BxSx1xHxW
+    return alpha
+
+
 def alpha_composition(alpha_BK1HW, value_BKCHW):
     """
     composition equation from 'Single-View View Synthesis with Multiplane Images'
