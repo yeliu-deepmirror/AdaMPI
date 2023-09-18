@@ -25,7 +25,7 @@ def merge_rgba_layers(rgba_layers):
     current_layer = None
     for x in range(num_rows):
         for y in range(num_cols):
-            layer_id = num_cols * x + y
+            layer_id = rgba_layers.shape[0] - (num_cols * x + y) - 1
             if current_layer is None:
                 current_layer = rgba_layers[layer_id, :, :, :]
             else:
@@ -35,7 +35,9 @@ def merge_rgba_layers(rgba_layers):
         else :
             final_image = np.concatenate((final_image, current_layer), axis=0)
         current_layer = None
-    return np.clip(np.round(final_image * 255), a_min=0, a_max=255).astype(np.uint8)
+    int_rgba = np.clip(np.round(final_image * 255), a_min=0, a_max=255).astype(np.uint8)
+    alpha = int_rgba[:, :, 3]
+    return int_rgba[:, :, 0:3], cv2.cvtColor(alpha, cv2.COLOR_GRAY2BGR)
 
 
 

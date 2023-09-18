@@ -77,7 +77,7 @@ while(cap.isOpened()):
     if ret == False:
         break
     print("process", cnt, "/", frame_count)
-    image_path = opt.output_path + '/' + str(cnt) + '.jpg'
+    image_path = opt.output_path + '/tmp.jpg'
     cv2.imwrite(image_path, image_cv)
     cnt = cnt + 1
 
@@ -85,19 +85,19 @@ while(cap.isOpened()):
         rgba_layers = process_image(image_path, (height, width), model_mpi, model_depth, image_processor, "cpu")
 
     # print(rgba_layers.shape)
-    large_rgba_image = merge_rgba_layers(rgba_layers)
+    rgb, alpha = merge_rgba_layers(rgba_layers)
     # print(large_rgba_image.shape)
     # cv2.imwrite("debug/rgba_layers.jpg", large_rgba_image)
     # cv2.imwrite("debug/rgba_layers.png", large_rgba_image)
 
-    rgb_frames.append(large_rgba_image[:, :, 0:3])
-    alpha_frames.append(large_rgba_image[:, :, 3].reshape([large_rgba_image.shape[0], large_rgba_image.shape[1], 1]))
+    rgb_frames.append(rgb)
+    alpha_frames.append(alpha)
 
     if cnt%10 == 0:
         print("save video")
         video_path = opt.output_path + '/mpi_rgb.mp4'
         rgb_clip = ImageSequenceClip(rgb_frames, fps=fps)
-        rgb_clip.write_videofile(video_path, verbose=False, codec='mpeg4', logger=None, bitrate='5000k')
+        rgb_clip.write_videofile(video_path, verbose=False, codec='mpeg4', logger=None, bitrate='8000k')
 
         # MP4 not supported alpha channel so make a new file for alpha
         alpha_path = opt.output_path + '/mpi_alpha.mp4'
