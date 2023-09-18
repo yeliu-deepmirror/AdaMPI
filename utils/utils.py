@@ -16,6 +16,29 @@ from moviepy.editor import ImageSequenceClip
 from utils.mpi import mpi_rendering
 from utils.mpi.homography_sampler import HomographySample
 
+def merge_rgba_layers(rgba_layers):
+    # concate row major -> 4 x X
+    num_rows = 4
+    num_cols = int(rgba_layers.shape[0] / num_rows)
+
+    final_image = None
+    current_layer = None
+    for x in range(num_rows):
+        for y in range(num_cols):
+            layer_id = num_cols * x + y
+            if current_layer is None:
+                current_layer = rgba_layers[layer_id, :, :, :]
+            else:
+                current_layer = np.concatenate((current_layer, rgba_layers[layer_id, :, :, :]), axis=1)
+        if final_image is None:
+            final_image = current_layer
+        else :
+            final_image = np.concatenate((final_image, current_layer), axis=0)
+        current_layer = None
+    return np.clip(np.round(final_image * 255), a_min=0, a_max=255).astype(np.uint8)
+
+
+
 def get_rgba(src_imgs, mpi_all_src, disparity_all_src):
     mpi_all_src_to_save = torch.squeeze(mpi_all_src)
     # permute to [num_layers, height, width, channels]
