@@ -67,11 +67,9 @@ model_mpi = model_mpi.eval()
 print("predict MPI planes...")
 
 os.makedirs(opt.output_path, exist_ok=True)
+os.makedirs(opt.output_path + "/tmp", exist_ok=True)
 # Read until video is completed
 cnt = 1
-rgb_frames = []
-alpha_frames = []
-
 while(cap.isOpened()):
     ret, image_cv = cap.read()
     if ret == False:
@@ -79,7 +77,6 @@ while(cap.isOpened()):
     print("process", cnt, "/", frame_count)
     image_path = opt.output_path + '/tmp.jpg'
     cv2.imwrite(image_path, image_cv)
-    cnt = cnt + 1
 
     with torch.no_grad():
         rgba_layers = process_image(image_path, (height, width), model_mpi, model_depth, image_processor, "cpu")
@@ -87,31 +84,13 @@ while(cap.isOpened()):
     # print(rgba_layers.shape)
     rgb, alpha = merge_rgba_layers(rgba_layers)
     # print(large_rgba_image.shape)
-    # cv2.imwrite("debug/rgba_layers.jpg", large_rgba_image)
-    # cv2.imwrite("debug/rgba_layers.png", large_rgba_image)
-
-    rgb_frames.append(rgb)
-    alpha_frames.append(alpha)
-
-    if cnt%10 == 0:
-        print("save video")
-        video_path = opt.output_path + '/mpi_rgb.mp4'
-        rgb_clip = ImageSequenceClip(rgb_frames, fps=fps)
-        rgb_clip.write_videofile(video_path, verbose=False, codec='mpeg4', logger=None, bitrate='8000k')
-
-        # MP4 not supported alpha channel so make a new file for alpha
-        alpha_path = opt.output_path + '/mpi_alpha.mp4'
-        rgb_clip_alpha = ImageSequenceClip(alpha_frames, fps=fps)
-        rgb_clip_alpha.write_videofile(alpha_path, verbose=False, codec='mpeg4', logger=None, bitrate='2000k')
-
+    cv2.imwrite(opt.output_path + "/tmp/" + str(cnt) + "rgb.jpg", rgb)
+    cv2.imwrite(opt.output_path + "/tmp/" + str(cnt) + "alpha.jpg", alpha)
+    cnt = cnt + 1
 
     gc.collect()
     torch.cuda.empty_cache()
 
 cap.release()
-
-# with torch.no_grad():
-#     rgba = process_image(opt.img_path, (opt.height, opt.width), model_mpi, model_depth, image_processor, "cpu")
-#     write_array(rgba, (-1, -1), opt.img_path + ".bin")
 
 print("Done")

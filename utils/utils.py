@@ -37,7 +37,7 @@ def merge_rgba_layers(rgba_layers):
         current_layer = None
     int_rgba = np.clip(np.round(final_image * 255), a_min=0, a_max=255).astype(np.uint8)
     alpha = int_rgba[:, :, 3]
-    return int_rgba[:, :, 0:3], cv2.cvtColor(alpha, cv2.COLOR_GRAY2BGR)
+    return int_rgba[:, :, 0:3], alpha
 
 
 
