@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-NAME="mpi"
+NAME="AdaMPI"
 IMAGE="mpi"
-WORKDIR=/home/$USER/mpi
+WORKDIR=/home/$USER/AdaMPI
 
 # Check if the container exists.
 if docker ps -a --format "{{.Names}}" | grep -q "^$NAME$"; then

@@ -42,8 +42,9 @@ video_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 print("open video", video_width, video_height, frame_count, fps)
 
 # process width height should be 128 * n
-n_w = int(video_width / 128)
-n_h = int(video_height / 128)
+resize_factor = 1
+n_w = int(resize_factor * video_width / 128)
+n_h = int(resize_factor * video_height / 128)
 width = n_w * 128
 height = n_h * 128
 print("process size", width, height)

@@ -2,7 +2,7 @@
 
 set -e
 
-NAME="mpi"
+NAME="AdaMPI"
 
 # Check if the container exists.
 if ! docker ps -a --format "{{.Names}}" | grep -q "^$NAME$"; then
