@@ -93,7 +93,7 @@ def process_image(img_path, process_size, model_mpi, model_depth, image_processo
     # image_processor = DPTImageProcessor.from_pretrained("Intel/dpt-hybrid-midas")
     image_tmp = Image.open(img_path).convert("RGB")
     inputs = image_processor(image_tmp, return_tensors="pt")
-    midas_depth = model_depth(pixel_values=inputs['pixel_values'].cuda()).predicted_depth.unsqueeze(1)
+    midas_depth = model_depth(pixel_values=inputs['pixel_values'].to(device)).predicted_depth.unsqueeze(1)
 
     # Dump depth map for debugging
     midas_depth_np = F.interpolate(midas_depth, size=process_size, mode="bilinear", align_corners=True).squeeze().cpu().numpy()
