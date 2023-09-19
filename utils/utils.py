@@ -1,6 +1,7 @@
 import os
 import math
 from PIL import Image
+from pathlib import Path
 import cv2
 from tqdm import tqdm
 import struct
@@ -8,11 +9,58 @@ import torch
 import torch.nn.functional as F
 from torchvision import transforms
 from torchvision.utils import save_image
+from transformers import DPTForDepthEstimation, DPTImageProcessor
 import numpy as np
 from moviepy.editor import ImageSequenceClip
 
 from utils.mpi import mpi_rendering
 from utils.mpi.homography_sampler import HomographySample
+
+def merge_rgba_layers(rgba_layers):
+    # concate row major -> 4 x X
+    num_rows = 4
+    num_cols = int(rgba_layers.shape[0] / num_rows)
+
+    final_image = None
+    current_layer = None
+    for x in range(num_rows):
+        for y in range(num_cols):
+            layer_id = rgba_layers.shape[0] - (num_cols * x + y) - 1
+            if current_layer is None:
+                current_layer = rgba_layers[layer_id, :, :, :]
+            else:
+                current_layer = np.concatenate((current_layer, rgba_layers[layer_id, :, :, :]), axis=1)
+        if final_image is None:
+            final_image = current_layer
+        else :
+            final_image = np.concatenate((final_image, current_layer), axis=0)
+        current_layer = None
+    int_rgba = np.clip(np.round(final_image * 255), a_min=0, a_max=255).astype(np.uint8)
+    alpha = int_rgba[:, :, 3]
+    return int_rgba[:, :, 0:3], alpha
+
+
+
+def get_rgba(src_imgs, mpi_all_src, disparity_all_src):
+    mpi_all_src_to_save = torch.squeeze(mpi_all_src)
+    # permute to [num_layers, height, width, channels]
+    mpi_all_src_to_save = torch.permute(mpi_all_src_to_save, (0, 2, 3, 1))
+
+    width = mpi_all_src_to_save.shape[2]
+    height = mpi_all_src_to_save.shape[1]
+    k_src = torch.tensor([
+        [0.58, 0, 0.5],
+        [0, 0.58, 0.5],
+        [0, 0, 1]
+    ], device=mpi_all_src.device)
+    k_src[0, :] *= width
+    k_src[1, :] *= height
+    k_src = k_src.unsqueeze(0)
+
+    alpha, blended_rgbs = remake_images(src_imgs, mpi_all_src, disparity_all_src, k_src)
+    mpi_all_src_to_save[:, :, :, 3] = torch.squeeze(alpha)
+    mpi_all_src_to_save[:, :, :, 0:3] = torch.permute(torch.squeeze(blended_rgbs), (0, 2, 3, 1))
+    return mpi_all_src_to_save
 
 
 def write_mpi_to_binary(src_imgs, mpi_all_src, disparity_all_src, path):
@@ -37,6 +85,32 @@ def write_mpi_to_binary(src_imgs, mpi_all_src, disparity_all_src, path):
 
     write_array(mpi_all_src_to_save.cpu().numpy(), (height, width), path)
 
+
+def process_image(img_path, process_size, model_mpi, model_depth, image_processor, device):
+    # print("process depth")
+    # Use MiDaS to generate depth map
+    # model_depth = DPTForDepthEstimation.from_pretrained("Intel/dpt-hybrid-midas").cuda()
+    # image_processor = DPTImageProcessor.from_pretrained("Intel/dpt-hybrid-midas")
+    image_tmp = Image.open(img_path).convert("RGB")
+    inputs = image_processor(image_tmp, return_tensors="pt")
+    midas_depth = model_depth(pixel_values=inputs['pixel_values'].to(device)).predicted_depth.unsqueeze(1)
+
+    # Dump depth map for debugging
+    midas_depth_np = F.interpolate(midas_depth, size=process_size, mode="bilinear", align_corners=True).squeeze().cpu().numpy()
+    formatted = (midas_depth_np * 255 / np.max(midas_depth_np)).astype("uint8")
+    # Path("debug").mkdir(parents=True, exist_ok=True)
+    # Image.fromarray(formatted).save("debug/midas_depth.png")
+
+    disp = midas_depth / torch.max(midas_depth)
+
+    image = image_to_tensor(img_path)  # [1,3,h,w]
+    image = F.interpolate(image, size=process_size, mode='bilinear', align_corners=True)
+    disp = F.interpolate(disp, size=process_size, mode='bilinear', align_corners=True)
+
+    # print("process mpi")
+    pred_mpi_planes, pred_mpi_disp = model_mpi(image.to(device), disp.to(device))  # [b,s,4,h,w]
+    # write_mpi_to_binary(image, pred_mpi_planes, pred_mpi_disp, opt.save_path + ".bin")
+    return get_rgba(image, pred_mpi_planes, pred_mpi_disp).cpu().numpy()
 
 
 

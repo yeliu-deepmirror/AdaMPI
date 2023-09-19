@@ -32,6 +32,11 @@ conda env create -f environment.yml
 conda activate mpi
 ```
 
+run generation video in cpu001
+```shell
+python gen_3dphoto_video.py --video_path debug/family_play.mpg --output_path /mnt/gz01/experiment/liuye/mpi
+```
+
 ## Document
 This repo contain two parts:
 * The train and inference code for the *AdaMPI*. You can use it to generate 3D photo from single-view in-the-wild image input, as shown in the [teaser gif](misc/teaser.gif). See [AdaMPI.md](doc/AdaMPI.md) for more details.
