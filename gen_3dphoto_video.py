@@ -51,7 +51,7 @@ print("process size", width, height)
 
 
 print("Load the models.")
-model_depth = DPTForDepthEstimation.from_pretrained("Intel/dpt-hybrid-midas").cuda()
+model_depth = DPTForDepthEstimation.from_pretrained("Intel/dpt-hybrid-midas")
 image_processor = DPTImageProcessor.from_pretrained("Intel/dpt-hybrid-midas")
 
 # load pretrained model
@@ -90,7 +90,7 @@ while(cap.isOpened()):
     cnt = cnt + 1
 
     gc.collect()
-    torch.cuda.empty_cache()
+    # torch.cuda.empty_cache()
 
 cap.release()
 
