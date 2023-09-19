@@ -15,30 +15,30 @@ from model.AdaMPI import MPIPredictor
 
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--img_path', type=str, default="images/0910.png")
+parser.add_argument('--img_path', type=str, default="images/0810.png")
 parser.add_argument('--disp_path', type=str, default=None)
 parser.add_argument('--width', type=int, default=384)
 parser.add_argument('--height', type=int, default=256)
-parser.add_argument('--save_path', type=str, default="debug/0910.mp4")
+parser.add_argument('--save_path', type=str, default="debug/0810.mp4")
 parser.add_argument('--ckpt_path', type=str, default="weight/adampi_32p.pth")
 opt, _ = parser.parse_known_args()
 
 
 # load input
-image = image_to_tensor(opt.img_path).cuda()  # [1,3,h,w]
+image = image_to_tensor(opt.img_path)  # [1,3,h,w]
 if opt.disp_path is not None:
-    disp = disparity_to_tensor(opt.disp_path).cuda()  # [1,1,h,w]
+    disp = disparity_to_tensor(opt.disp_path)  # [1,1,h,w]
 else:
     # Use MiDaS to generate depth map
-    model = DPTForDepthEstimation.from_pretrained("Intel/dpt-hybrid-midas").cuda()
+    model = DPTForDepthEstimation.from_pretrained("Intel/dpt-hybrid-midas")
     image_processor = DPTImageProcessor.from_pretrained("Intel/dpt-hybrid-midas")
     with torch.no_grad():
         image_tmp = Image.open(opt.img_path).convert("RGB")
         inputs = image_processor(image_tmp, return_tensors="pt")
-        midas_depth = model(pixel_values=inputs['pixel_values'].cuda()).predicted_depth.unsqueeze(1)
+        midas_depth = model(pixel_values=inputs['pixel_values']).predicted_depth.unsqueeze(1)
 
         # Dump depth map for debugging
-        midas_depth_np = output = F.interpolate(midas_depth, size=(opt.height, opt.width), mode="bilinear", align_corners=True).squeeze().cpu().numpy()
+        midas_depth_np = F.interpolate(midas_depth, size=(opt.height, opt.width), mode="bilinear", align_corners=True).squeeze().numpy()
         formatted = (midas_depth_np * 255 / np.max(midas_depth_np)).astype("uint8")
         Path("debug").mkdir(parents=True, exist_ok=True)
         Image.fromarray(formatted).save("debug/midas_depth.png")
