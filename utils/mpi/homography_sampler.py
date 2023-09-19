@@ -13,7 +13,7 @@ def inverse(matrices):
     inverse = None
     max_tries = 5
     while (inverse is None) or (torch.isnan(inverse)).any():
-        torch.cuda.synchronize()
+        # torch.cuda.synchronize()
         inverse = torch.inverse(matrices)
 
         # Break out of the loop when the inverse is successful or there"re no more tries
