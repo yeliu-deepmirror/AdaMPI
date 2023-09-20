@@ -34,7 +34,12 @@ conda activate mpi
 
 run generation video in cpu001
 ```shell
-python gen_3dphoto_video.py --video_path debug/family_play.mpg --output_path /mnt/gz01/experiment/liuye/mpi
+python gen_3dphoto_video.py --video_path debug/yard_friend.mp4 --output_path /mnt/gz01/experiment/liuye/mpi
+python gen_3dphoto_video.py --video_path debug/yaorenmao.mp4 --output_path /mnt/gz01/experiment/liuye/mpi
+```
+
+```shell
+python make_video.py --output_path /mnt/gz01/experiment/liuye/mpi --start_cnt=100 --end_cnt=800
 ```
 
 ## Document
