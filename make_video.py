@@ -11,23 +11,22 @@ from moviepy.editor import ImageSequenceClip
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--output_path', type=str, default="debug/video_mpi")
 parser.add_argument('--ckpt_path', type=str, default="weight/adampi_32p.pth")
+parser.add_argument('--start_cnt', type=int, default=1)
+parser.add_argument('--end_cnt', type=int, default=100)
+parser.add_argument('--resize_factor', type=float, default=1.0)
 opt, _ = parser.parse_known_args()
 
-start_cnt = 150
-end_cnt = 377
 fps = 25
-resize_factor = 2
-resize_factor_a = 1
 
 # opencv video make better quality (even larger size)
 print("make rgb video cv")
 opencv_video_l = None
 opencv_video_r = None
-for i in range(start_cnt, end_cnt):
+for i in range(opt.start_cnt, opt.end_cnt):
     if i%30 == 0:
-        print("process", i, "/", end_cnt)
+        print("process", i, "/", opt.end_cnt)
     rgb = cv2.imread(opt.output_path + "/tmp/" + str(i) + "rgb.jpg")
-    rgb_size = (int(rgb.shape[1] * resize_factor), int(rgb.shape[0] * resize_factor))
+    rgb_size = (int(rgb.shape[1] * opt.resize_factor), int(rgb.shape[0] * opt.resize_factor))
     rgb = cv2.resize(rgb, rgb_size)
 
     sub_width = int(rgb_size[0] * 0.5)
@@ -35,6 +34,7 @@ for i in range(start_cnt, end_cnt):
     rgb_l = rgb[:, 0:sub_width, :]
     rgb_r = rgb[:, sub_width:, :]
     if opencv_video_l is None:
+        print(sub_size)
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         opencv_video_l = cv2.VideoWriter(opt.output_path + '/cv_mpi_rgb_l.mp4', fourcc, 25, sub_size)
         opencv_video_r = cv2.VideoWriter(opt.output_path + '/cv_mpi_rgb_r.mp4', fourcc, 25, sub_size)
@@ -47,12 +47,12 @@ opencv_video_r.release()
 
 print("make alpha video cv")
 opencv_video_a = None
-for i in range(start_cnt, end_cnt):
+for i in range(opt.start_cnt, opt.end_cnt):
     if i%30 == 0:
-        print("process", i, "/", end_cnt)
+        print("process", i, "/", opt.end_cnt)
     rgb = cv2.imread(opt.output_path + "/tmp/" + str(i) + "alpha.jpg")
-    rgb_size = (int(rgb.shape[1] * resize_factor_a), int(rgb.shape[0] * resize_factor_a))
-    rgb = cv2.resize(rgb, rgb_size)
+    rgb_size = (int(rgb.shape[1] * opt.resize_factor), int(rgb.shape[0] * opt.resize_factor))
+    rgb = cv2.resize(rgb, rgb_size, interpolation = cv2.INTER_NEAREST)
     if opencv_video_a is None:
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         opencv_video_a = cv2.VideoWriter(opt.output_path + '/cv_mpi_alpha.mp4', fourcc, 25, rgb_size)
@@ -63,11 +63,11 @@ opencv_video_a.release()
 if False:
     print("make rgb video")
     rgb_frames = []
-    for i in range(start_cnt, end_cnt):
+    for i in range(opt.start_cnt, opt.end_cnt):
         if i%30 == 0:
-            print("process", i, "/", end_cnt)
+            print("process", i, "/", opt.end_cnt)
         rgb = cv2.imread(opt.output_path + "/tmp/" + str(i) + "rgb.jpg")
-        rgb_frames.append(cv2.resize(rgb, (int(rgb.shape[1] * resize_factor), int(rgb.shape[0] * resize_factor))))
+        rgb_frames.append(cv2.resize(rgb, (int(rgb.shape[1] * opt.resize_factor), int(rgb.shape[0] * opt.resize_factor))))
         gc.collect()
 
     video_path = opt.output_path + '/mpi_rgb.mp4'
@@ -79,11 +79,12 @@ if False:
 
     print("make alpha video")
     alpha_frames = []
-    for i in range(start_cnt, end_cnt):
+    for i in range(opt.start_cnt, opt.end_cnt):
         if i%30 == 0:
-            print("process", i, "/", end_cnt)
+            print("process", i, "/", opt.end_cnt)
         alpha = cv2.imread(opt.output_path + "/tmp/" + str(i) + "alpha.jpg")
-        alpha_frames.append(cv2.resize(alpha, (int(alpha.shape[1] * resize_factor), int(alpha.shape[0] * resize_factor))))
+        alpha_frames.append(cv2.resize(alpha, (int(alpha.shape[1] * opt.resize_factor), int(alpha.shape[0] * opt.resize_factor)),
+                                       interpolation = cv2.INTER_NEAREST))
 
     # MP4 not supported alpha channel so make a new file for alpha
     alpha_path = opt.output_path + '/mpi_alpha.mp4'
