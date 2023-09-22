@@ -13,6 +13,7 @@ parser.add_argument('--output_path', type=str, default="debug/video_mpi")
 parser.add_argument('--ckpt_path', type=str, default="weight/adampi_32p.pth")
 parser.add_argument('--start_cnt', type=int, default=1)
 parser.add_argument('--end_cnt', type=int, default=100)
+parser.add_argument('--interval', type=int, default=1)
 parser.add_argument('--resize_factor', type=float, default=1.0)
 parser.add_argument('--resize_factor_a', type=float, default=1.0)
 opt, _ = parser.parse_known_args()
@@ -22,12 +23,12 @@ fps = 25
 # opencv video make better quality (even larger size)
 print("make alpha video cv")
 opencv_video_a = None
-for i in range(opt.start_cnt, opt.end_cnt):
+for i in range(opt.start_cnt, opt.end_cnt, opt.interval):
     if i%30 == 0:
         print("process", i, "/", opt.end_cnt)
     rgb = cv2.imread(opt.output_path + "/tmp/" + str(i) + "alpha.jpg")
     rgb_size = (int(rgb.shape[1] * opt.resize_factor_a), int(rgb.shape[0] * opt.resize_factor_a))
-    rgb = cv2.resize(rgb, rgb_size, interpolation = cv2.INTER_NEAREST)
+    rgb = cv2.resize(rgb, rgb_size)
     if opencv_video_a is None:
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         opencv_video_a = cv2.VideoWriter(opt.output_path + '/cv_mpi_alpha.mp4', fourcc, 25, rgb_size)
@@ -37,7 +38,7 @@ opencv_video_a.release()
 print("make rgb video cv")
 opencv_video_l = None
 opencv_video_r = None
-for i in range(opt.start_cnt, opt.end_cnt):
+for i in range(opt.start_cnt, opt.end_cnt, opt.interval):
     if i%30 == 0:
         print("process", i, "/", opt.end_cnt)
     rgb = cv2.imread(opt.output_path + "/tmp/" + str(i) + "rgb.jpg")
