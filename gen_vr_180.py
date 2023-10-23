@@ -19,6 +19,7 @@ parser.add_argument('--start_cnt', type=int, default=1)
 parser.add_argument('--end_cnt', type=int, default=100)
 parser.add_argument('--interval', type=int, default=1)
 parser.add_argument('--fps', type=int, default=30)
+parser.add_argument('--len_distance', type=float, default=0.02)
 opt, _ = parser.parse_known_args()
 
 # python gen_vr_180.py --output_path /mnt/gz01/experiment/liuye/mpi/video_mpi_mom_not_home --start_cnt=1 --end_cnt=300
@@ -51,7 +52,7 @@ def render(alphas, rgbs, cols = 8, rows = 4):
     # principal point in the center.
     intrinsics = tf.constant([1.0, 1.0 * ele_width/ele_height, 0.5, 0.5])
 
-    x_offsets = [-0.1, 0.1]
+    x_offsets = [-opt.len_distance, opt.len_distance]
     rended_images = []
     for x_offset in x_offsets:
         target_pose = tf.constant(
@@ -62,7 +63,7 @@ def render(alphas, rgbs, cols = 8, rows = 4):
                            target_pose, intrinsics,      # Target view
                            height=ele_height, width=ele_width)
         image_cv = (255.0 * image.numpy()).astype(np.uint8)
-        image_cv = cv2.cvtColor(image_cv, cv2.COLOR_BGR2BGR)
+        image_cv = cv2.cvtColor(image_cv, cv2.COLOR_BGR2RGB)
         rended_images.append(image_cv)
 
     # make LR image
@@ -86,7 +87,7 @@ for i in range(opt.start_cnt, opt.end_cnt, opt.interval):
     # write the image
     if opencv_video_vr is None:
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        opencv_video_vr = cv2.VideoWriter(opt.output_path + '/VR_LR_180.mp4', fourcc, opt.fps, image_LR_size)
+        opencv_video_vr = cv2.VideoWriter(opt.output_path + '/VR_LR.mp4', fourcc, opt.fps, image_LR_size)
     opencv_video_vr.write(image_LR)
 opencv_video_vr.release()
 
