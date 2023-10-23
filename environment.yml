@@ -25,3 +25,5 @@ dependencies:
     - focal_frequency_loss
     - tensorboard
     - transformers
+    - tensorflow
+    - tensorflow-addons

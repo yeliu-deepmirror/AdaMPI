@@ -62,6 +62,7 @@ def render(alphas, rgbs, cols = 8, rows = 4):
                            target_pose, intrinsics,      # Target view
                            height=ele_height, width=ele_width)
         image_cv = (255.0 * image.numpy()).astype(np.uint8)
+        image_cv = cv2.cvtColor(image_cv, cv2.COLOR_BGR2BGR)
         rended_images.append(image_cv)
 
     # make LR image
