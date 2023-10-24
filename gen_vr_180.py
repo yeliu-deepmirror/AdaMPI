@@ -5,6 +5,7 @@ from pathlib import Path
 import argparse
 from PIL import Image
 import cv2
+import glob
 import os
 import numpy as np
 import gc
@@ -16,7 +17,7 @@ parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFo
 parser.add_argument('--output_path', type=str, default="debug/video_mpi")
 parser.add_argument('--ckpt_path', type=str, default="weight/adampi_32p.pth")
 parser.add_argument('--start_cnt', type=int, default=1)
-parser.add_argument('--end_cnt', type=int, default=100)
+parser.add_argument('--end_cnt', type=int, default=0)
 parser.add_argument('--interval', type=int, default=1)
 parser.add_argument('--fps', type=int, default=30)
 parser.add_argument('--len_distance', type=float, default=0.02)
@@ -70,11 +71,16 @@ def render(alphas, rgbs, cols = 8, rows = 4):
     image_LR = np.concatenate([rended_images[0], rended_images[1]], axis=1)
     return image_LR
 
+end_index = opt.end_cnt
+if end_index < opt.start_cnt:
+    # process full
+    images = glob.glob(opt.output_path + "/tmp/*.jpg")
+    end_index = int(len(images) / 2)
 
 # opencv video make better quality (even larger size)
-print("make VR LR 180 video cv")
+print("make VR LR 180 video cv.", opt.start_cnt, opt.interval, end_index)
 opencv_video_vr = None
-for i in range(opt.start_cnt, opt.end_cnt, opt.interval):
+for i in range(opt.start_cnt, end_index, opt.interval):
     if i%30 == 0:
         print("process", i, "/", opt.end_cnt)
     alphas = cv2.imread(opt.output_path + "/tmp/" + str(i) + "alpha.jpg")
