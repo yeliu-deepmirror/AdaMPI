@@ -104,11 +104,11 @@ def process_image(img_path, process_size, model_mpi, model_depth, image_processo
     disp = midas_depth / torch.max(midas_depth)
 
     image = image_to_tensor(img_path)  # [1,3,h,w]
-    image = F.interpolate(image, size=process_size, mode='bilinear', align_corners=True)
-    disp = F.interpolate(disp, size=process_size, mode='bilinear', align_corners=True)
+    image = F.interpolate(image, size=process_size, mode='bilinear', align_corners=True).to(device)
+    disp = F.interpolate(disp, size=process_size, mode='bilinear', align_corners=True).to(device)
 
     # print("process mpi")
-    pred_mpi_planes, pred_mpi_disp = model_mpi(image.to(device), disp.to(device))  # [b,s,4,h,w]
+    pred_mpi_planes, pred_mpi_disp = model_mpi(image, disp)  # [b,s,4,h,w]
     # write_mpi_to_binary(image, pred_mpi_planes, pred_mpi_disp, opt.save_path + ".bin")
     return get_rgba(image, pred_mpi_planes, pred_mpi_disp).cpu().numpy()
 
