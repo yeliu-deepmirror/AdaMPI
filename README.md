@@ -44,7 +44,13 @@ python make_video.py --output_path /mnt/gz01/experiment/liuye/mpi --start_cnt=10
 
 generate VR LR video
 ```shell
-python gen_vr_180.py --output_path /mnt/gz01/experiment/liuye/mpi --start_cnt=1 --end_cnt=300
+python gen_vr_180.py --output_path /mnt/gz01/experiment/liuye/mpi/video_mpi_yangtuo
+
+python gen_vr_180.py --output_path /mnt/ml-experiment-data/yeliu/MPI/ipman --video_path /mnt/ml-experiment-data/yeliu/MPI/ipman_audio.mp4
+
+
+python gen_vr_180.py --output_path /mnt/data/yeliu/MPI/ipman --video_path /mnt/data/yeliu/MPI/ipman_audio.mp4
+
 ```
 
 ## Document

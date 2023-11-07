@@ -25,9 +25,11 @@ from model.AdaMPI import MPIPredictor
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--video_path', type=str)
 parser.add_argument('--output_path', type=str, default="debug/video_mpi")
-# parser.add_argument('--width', type=int, default=384)
-# parser.add_argument('--height', type=int, default=256)
 parser.add_argument('--ckpt_path', type=str, default="weight/adampi_32p.pth")
+parser.add_argument('--cache_dir', type=str, default="weight")
+parser.add_argument('--device', type=str, default="cpu")
+parser.add_argument('--resize_factor', type=float, default=1.0)
+
 opt, _ = parser.parse_known_args()
 
 cap = cv2.VideoCapture(opt.video_path)
@@ -42,17 +44,17 @@ video_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 print("open video", video_width, video_height, frame_count, fps)
 
 # process width height should be 128 * n
-resize_factor = 1
-n_w = int(resize_factor * video_width / 128)
-n_h = int(resize_factor * video_height / 128)
+n_w = max(int(opt.resize_factor * video_width / 128), 1)
+n_h = max(int(opt.resize_factor * video_height / 128), 1)
 width = n_w * 128
 height = n_h * 128
 print("process size", width, height)
 
-
 print("Load the models.")
-model_depth = DPTForDepthEstimation.from_pretrained("Intel/dpt-hybrid-midas")
-image_processor = DPTImageProcessor.from_pretrained("Intel/dpt-hybrid-midas")
+model_depth = DPTForDepthEstimation.from_pretrained("Intel/dpt-hybrid-midas", cache_dir=opt.cache_dir)
+if opt.device == "cuda":
+    model_depth = model_depth.cuda()
+image_processor = DPTImageProcessor.from_pretrained("Intel/dpt-hybrid-midas", cache_dir=opt.cache_dir)
 
 # load pretrained model
 ckpt = torch.load(opt.ckpt_path)
@@ -62,6 +64,8 @@ model_mpi = MPIPredictor(
     num_planes=ckpt["num_planes"],
 )
 model_mpi.load_state_dict(ckpt["weight"])
+if opt.device == "cuda":
+    model_mpi = model_mpi.cuda()
 model_mpi = model_mpi.eval()
 
 # predict MPI planes
@@ -80,7 +84,7 @@ while(cap.isOpened()):
     cv2.imwrite(image_path, image_cv)
 
     with torch.no_grad():
-        rgba_layers = process_image(image_path, (height, width), model_mpi, model_depth, image_processor, "cpu")
+        rgba_layers = process_image(image_path, (height, width), model_mpi, model_depth, image_processor, opt.device)
 
     # print(rgba_layers.shape)
     rgb, alpha = merge_rgba_layers(rgba_layers)
