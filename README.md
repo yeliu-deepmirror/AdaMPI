@@ -38,6 +38,17 @@ python gen_3dphoto_video.py --video_path debug/yard_friend.mp4 --output_path /mn
 python gen_3dphoto_video.py --video_path debug/yaorenmao.mp4 --output_path /mnt/gz01/experiment/liuye/mpi
 ```
 
+Run in Determined
+```
+VIDEO_PATH=/mnt/data/yeliu/MPI/forest.mp4
+OUTPUT_PATH=/mnt/data/yeliu/MPI/forest
+WEIGHT_PATH=/mnt/data/yeliu/models/mpi_weight
+
+python gen_3dphoto_video.py \
+--video_path ${VIDEO_PATH} --output_path ${OUTPUT_PATH} \
+--ckpt_path ${WEIGHT_PATH}/adampi_32p.pth --cache_dir ${WEIGHT_PATH} --device cuda
+```
+
 ```shell
 python make_video.py --output_path /mnt/gz01/experiment/liuye/mpi --start_cnt=100 --end_cnt=800
 ```
@@ -45,13 +56,11 @@ python make_video.py --output_path /mnt/gz01/experiment/liuye/mpi --start_cnt=10
 generate VR LR video
 ```shell
 python gen_vr_180.py --output_path /mnt/gz01/experiment/liuye/mpi/video_mpi_yangtuo
-
 python gen_vr_180.py --output_path /mnt/ml-experiment-data/yeliu/MPI/ipman --video_path /mnt/ml-experiment-data/yeliu/MPI/ipman_audio.mp4
-
-
 python gen_vr_180.py --output_path /mnt/data/yeliu/MPI/ipman --video_path /mnt/data/yeliu/MPI/ipman_audio.mp4
-
 ```
+
+
 
 ## Document
 This repo contain two parts:
