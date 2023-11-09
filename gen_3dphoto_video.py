@@ -84,13 +84,18 @@ while(cap.isOpened()):
     cv2.imwrite(image_path, image_cv)
 
     with torch.no_grad():
-        rgba_layers = process_image(image_path, (height, width), model_mpi, model_depth, image_processor, opt.device)
+        rgba_layers, mpi_depths = process_image(image_path, (height, width), model_mpi, model_depth, image_processor, opt.device)
 
     # print(rgba_layers.shape)
     rgb, alpha = merge_rgba_layers(rgba_layers)
     # print(large_rgba_image.shape)
     cv2.imwrite(opt.output_path + "/tmp/" + str(cnt) + "rgb.jpg", rgb)
     cv2.imwrite(opt.output_path + "/tmp/" + str(cnt) + "alpha.jpg", alpha)
+    # save the depths (in reversed order to fit MPI order)
+    with open(opt.output_path + "/tmp/" + str(cnt) + "depths.npy", 'wb') as f:
+        mpi_depths_inv = np.flip(mpi_depths)
+        np.save(f, mpi_depths_inv)
+        
     cnt = cnt + 1
 
     gc.collect()

@@ -110,8 +110,8 @@ def process_image(img_path, process_size, model_mpi, model_depth, image_processo
     # print("process mpi")
     pred_mpi_planes, pred_mpi_disp = model_mpi(image, disp)  # [b,s,4,h,w]
     # write_mpi_to_binary(image, pred_mpi_planes, pred_mpi_disp, opt.save_path + ".bin")
-    return get_rgba(image, pred_mpi_planes, pred_mpi_disp).cpu().numpy()
-
+    mpi_depth_src = torch.reciprocal(pred_mpi_disp)
+    return get_rgba(image, pred_mpi_planes, pred_mpi_disp).cpu().numpy(), mpi_depth_src.cpu().numpy().squeeze()
 
 
 def write_array(arrays_float, original_shape, path):
