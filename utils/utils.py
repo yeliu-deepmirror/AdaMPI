@@ -96,8 +96,8 @@ def process_image(img_path, process_size, model_mpi, model_depth, image_processo
     midas_depth = model_depth(pixel_values=inputs['pixel_values'].to(device)).predicted_depth.unsqueeze(1)
 
     # Dump depth map for debugging
-    midas_depth_np = F.interpolate(midas_depth, size=process_size, mode="bilinear", align_corners=True).squeeze().cpu().numpy()
-    formatted = (midas_depth_np * 255 / np.max(midas_depth_np)).astype("uint8")
+    # midas_depth_np = F.interpolate(midas_depth, size=process_size, mode="bilinear", align_corners=True).squeeze().cpu().numpy()
+    # formatted = (midas_depth_np * 255 / np.max(midas_depth_np)).astype("uint8")
     # Path("debug").mkdir(parents=True, exist_ok=True)
     # Image.fromarray(formatted).save("debug/midas_depth.png")
 
@@ -110,7 +110,28 @@ def process_image(img_path, process_size, model_mpi, model_depth, image_processo
     # print("process mpi")
     pred_mpi_planes, pred_mpi_disp = model_mpi(image, disp)  # [b,s,4,h,w]
     # write_mpi_to_binary(image, pred_mpi_planes, pred_mpi_disp, opt.save_path + ".bin")
-    return get_rgba(image, pred_mpi_planes, pred_mpi_disp).cpu().numpy()
+    mpi_depth_src = torch.reciprocal(pred_mpi_disp)
+    return get_rgba(image, pred_mpi_planes, pred_mpi_disp).cpu().numpy(), mpi_depth_src.cpu().numpy().squeeze()
+
+
+def process_image_with_depth(img_path, depth_np, process_size, model_mpi, device):
+    disp_np = 1.0 / depth_np
+    disp = torch.from_numpy(disp_np)
+
+    # midas_depth_np = F.interpolate(read_depth, size=process_size, mode="bilinear", align_corners=True).squeeze().cpu().numpy()
+    # formatted = (midas_depth_np * 255 / np.max(midas_depth_np)).astype("uint8")
+    # Path("debug").mkdir(parents=True, exist_ok=True)
+    # Image.fromarray(formatted).save("debug/read_depth.png")
+
+    disp = disp / torch.max(disp)
+    image = image_to_tensor(img_path)  # [1,3,h,w]
+    image = F.interpolate(image, size=process_size, mode='bilinear', align_corners=True).to(device)
+    disp = F.interpolate(disp, size=process_size, mode='bilinear', align_corners=True).to(device)
+
+    pred_mpi_planes, pred_mpi_disp = model_mpi(image, disp)  # [b,s,4,h,w]
+    print(pred_mpi_disp)
+    mpi_depth_src = torch.reciprocal(pred_mpi_disp)
+    return get_rgba(image, pred_mpi_planes, pred_mpi_disp).cpu().numpy(), mpi_depth_src.cpu().numpy().squeeze()
 
 
 
