@@ -30,15 +30,19 @@ print("have", end_index, "images")
 
 # save depth to txt mpi_video_depths
 print("write depths")
-with open(opt.output_path + '/mpi_video_depths.txt', 'w') as f:
+with open(opt.output_path + '/mpi_video_depths.txt', 'w') as f_out:
     for i in range(opt.start_cnt, end_index, opt.interval):
         depths_file = opt.output_path + "/tmp/" + str(i) + "depths.npy"
         if os.path.exists(depths_file):
-            with open(depths_file, 'rb') as f:
-                depths = np.load(f).squeeze()
-                print(depths)
+            with open(depths_file, 'rb') as f_depths:
+                depths = np.load(f_depths).squeeze()
         else:
             print("Warning: depth not found for", i)
+            depths = np.zeros(32)
+        # write line to file
+        for n in range(depths.shape[0]):
+            f_out.write(str(depths[n]) + " ")
+        f_out.write("\n")
 
 
 # opencv video make better quality (even larger size)
