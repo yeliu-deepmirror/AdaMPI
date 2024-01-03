@@ -26,6 +26,7 @@ if end_index < opt.start_cnt:
     images = glob.glob(opt.output_path + "/tmp/*.jpg")
     end_index = int(len(images) / 2)
 
+print("have", end_index, "images")
 
 # save depth to txt mpi_video_depths
 print("write depths")
@@ -35,6 +36,7 @@ with open(opt.output_path + '/mpi_video_depths.txt', 'w') as f:
         if os.path.exists(depths_file):
             with open(depths_file, 'rb') as f:
                 depths = np.load(f).squeeze()
+                print(depths)
         else:
             print("Warning: depth not found for", i)
 
