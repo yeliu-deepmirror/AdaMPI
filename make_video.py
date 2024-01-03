@@ -26,6 +26,19 @@ if end_index < opt.start_cnt:
     images = glob.glob(opt.output_path + "/tmp/*.jpg")
     end_index = int(len(images) / 2)
 
+
+# save depth to txt mpi_video_depths
+print("write depths")
+with open(opt.output_path + '/mpi_video_depths.txt', 'w') as f:
+    for i in range(opt.start_cnt, end_index, opt.interval):
+        depths_file = opt.output_path + "/tmp/" + str(i) + "depths.npy"
+        if os.path.exists(depths_file):
+            with open(depths_file, 'rb') as f:
+                depths = np.load(f).squeeze()
+        else:
+            print("Warning: depth not found for", i)
+
+
 # opencv video make better quality (even larger size)
 print("make alpha video cv")
 opencv_video_a = None

@@ -10,3 +10,4 @@ data/*
 workspace/*
 weight
 .AdaMPI_bash_history
+*.isi_s3_dir
