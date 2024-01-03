@@ -51,7 +51,7 @@ python gen_3dphoto_video.py \
 ```
 
 ```shell
-python make_video.py --output_path /mnt/ml-experiment-data/yeliu/MPI/yangtuo
+python make_video.py --output_path /mnt/data/yeliu/MPI/war
 ```
 
 generate VR LR video
